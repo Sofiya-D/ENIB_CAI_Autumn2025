@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication # pip install PyQt5
+from PyQt5.QtWidgets import QApplication
 
 from models import RepoModel
 from views import MainWindow
