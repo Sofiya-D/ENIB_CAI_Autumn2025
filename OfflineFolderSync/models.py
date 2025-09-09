@@ -30,15 +30,6 @@ class RepoModel:
                     usb_path TEXT NOT NULL
                 )
             """)
-                # CREATE TABLE IF NOT EXISTS synced_files (
-                #     id INTEGER PRIMARY KEY,
-                #     filename TEXT NOT NULL,
-                #     status TEXT NOT NULL,
-                #     last_update TEXT NOT NULL,
-                #     hash TEXT NOT NULL,
-                #     path TEXT NOT NULL
-                # )
-    
     
     ### Load the folders' sync status from the database
     def load_folderlist(self):
@@ -122,6 +113,16 @@ class RepoModel:
     #             "status": status,
     #             "last_update": datetime.now().isoformat()
     #         }
+
+
+                # CREATE TABLE IF NOT EXISTS synced_files (
+                #     id INTEGER PRIMARY KEY,
+                #     filename TEXT NOT NULL,
+                #     status TEXT NOT NULL,
+                #     last_update TEXT NOT NULL,
+                #     hash TEXT NOT NULL,
+                #     path TEXT NOT NULL
+                # )
 
 
 if __name__ == "__main__":
