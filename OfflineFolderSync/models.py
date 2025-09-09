@@ -15,6 +15,7 @@ class RepoModel:
         self.create_table()
         self.load_folderlist()  # Load existing data on initialization
     
+    
     # FOLDER-LEVEL OPERATIONS
 
     def create_table(self):
@@ -96,6 +97,29 @@ class RepoModel:
                 WHERE foldername = ?
             """, (status, datetime.now().isoformat(), foldername))
         self.load_folderlist()
+    
+    ### Update a folder's local_path and/or usb_path
+    def update_folder_paths(self, foldername, local_path=None, usb_path=None):
+        with self.connection:
+            if local_path is not None and usb_path is not None:
+                self.connection.execute("""
+                    UPDATE synced_folders 
+                    SET local_path = ?, usb_path = ?, last_update = ? 
+                    WHERE foldername = ?
+                """, (local_path, usb_path, datetime.now().isoformat(), foldername))
+            elif local_path is not None:
+                self.connection.execute("""
+                    UPDATE synced_folders 
+                    SET local_path = ?, last_update = ? 
+                    WHERE foldername = ?
+                """, (local_path, datetime.now().isoformat(), foldername))
+            elif usb_path is not None:
+                self.connection.execute("""
+                    UPDATE synced_folders 
+                    SET usb_path = ?, last_update = ? 
+                    WHERE foldername = ?
+                """, (usb_path, datetime.now().isoformat(), foldername))
+        self.load_folderlist()
 
     ### Get all tracked folders and their statuses
     def get_all_folders(self):
@@ -125,25 +149,41 @@ class RepoModel:
                 # )
 
 
+
+# TESTING
 if __name__ == "__main__":
-    # Simple test
-    print(">>> Testing RepoModel...")
-    
+
     # Create a test instance
     repo = RepoModel("offline_filesync_test.db")
 
-    # Add a test folder
-    repo.add_folder("TestFolder", "new", "hash123", "/home/test", "/usb/test")
-    
-    # Show all folders
-    folders = repo.get_all_folders()
-    print(f"Folders: {folders}")
-    
-    # Update status
-    repo.update_folder_status("TestFolder", "synced")
-    
-    # Show updated data
-    updated_folders = repo.get_all_folders()
-    print(f"Updated: {updated_folders}")
-    
-    print("Test completed!")
+    crud=input("choose CRUD (C,R,U,D) : ")
+
+    match crud.upper():
+
+        case "C": # Add a folder to track
+            foldername = input("Enter folder name: ")
+            status = input("Enter status: ")
+            hash = input("Enter hash: ")
+            local_path = input("Enter local path: ")
+            usb_path = input("Enter USB path: ")
+            repo.add_folder(foldername, status, hash, local_path, usb_path)
+            print(f"Folder '{foldername}' added.")
+
+        case "R": # Read all folders
+            folders = repo.get_all_folders()
+            print(f"Folders: {folders}")
+
+        case "U": # Update folder status
+            foldername = input("Enter folder name to update: ")
+            status = input("Enter new status: ")
+            repo.update_folder_status(foldername, status)
+            repo.update_folder_paths(foldername, local_path="/new/local/path", usb_path="/new/usb/path")
+            print(f"Folder '{foldername}' updated to status '{status}'.")
+
+        case "D": # Delete a folder
+            foldername = input("Enter folder name to delete: ")
+            repo.remove_folder(foldername)
+            print(f"Folder '{foldername}' removed.")
+
+        case _: 
+            print("Invalid choice.")
