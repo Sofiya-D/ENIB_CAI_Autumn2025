@@ -1,3 +1,8 @@
+# views.py
+# Handles the GUI
+# What the user sees and interacts with
+
+
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QListWidget,
     QMenuBar, QAction, QFileDialog, QMessageBox, QTextEdit

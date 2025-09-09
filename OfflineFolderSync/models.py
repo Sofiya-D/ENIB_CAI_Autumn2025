@@ -1,3 +1,9 @@
+# models.py
+# For managing data
+# Here it means: data about files and their sync status
+# Uses JSON to store information locally
+
+
 import json
 import os
 from datetime import datetime

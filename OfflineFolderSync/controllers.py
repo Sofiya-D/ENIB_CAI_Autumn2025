@@ -1,3 +1,9 @@
+# controllers.py
+# Handles the logic between model and view
+# ie, communication and data flow
+# Where the main application logic lives
+
+
 class MainController:
     def __init__(self, model, view):
         self.model = model
