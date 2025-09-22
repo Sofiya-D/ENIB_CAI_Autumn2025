@@ -8,16 +8,14 @@ from controllers import MainController
 
 def main():
     app = QApplication(sys.argv)
-
-    # Modèle
     model = RepoModel()
-
-    # Vue
     view = MainWindow()
-
-    # Contrôleur
     controller = MainController(model, view)
+    
+    def cleanup():
+        model.close()
 
+    app.aboutToQuit.connect(cleanup)
     view.show()
     sys.exit(app.exec_())
 
