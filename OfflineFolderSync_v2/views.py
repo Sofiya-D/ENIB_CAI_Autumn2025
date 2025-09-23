@@ -50,12 +50,12 @@ class MainWindow(QMainWindow):
         # Local Path
         self.localpath_label = QLabel("Local Path")
         self.localpath_label.setFont(self.label)
-        self.localpath = QLineEdit("TODO!") #TODO!(0) read path
+        self.localpath = QLineEdit("") #TODO!(0) read path
         self.localpath.setReadOnly(True)
         # Remote Path
         self.remotepath_label = QLabel("Remote Path")
         self.remotepath_label.setFont(self.label)
-        self.remotepath = QLineEdit("TODO!") #TODO!(0) read path
+        self.remotepath = QLineEdit("") #TODO!(0) read path
         self.remotepath.setReadOnly(True)
         # Other
         self.changepathbutton = QPushButton("Change Paths")
@@ -83,4 +83,14 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    print("Testing views.py")
+
+    print(">> Testing views.py <<")
+
+    from PyQt6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+
+    app.exec()

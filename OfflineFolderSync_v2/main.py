@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton
 import sys
-import view
+
+from views import MainWindow
 
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
@@ -8,7 +9,7 @@ import view
 app = QApplication(sys.argv)
 
 
-window = view.MainWindow()
+window = MainWindow()
 window.show()  # IMPORTANT!!!!! Windows are hidden by default.
 
 # Start the event loop.
