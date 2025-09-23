@@ -24,13 +24,13 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(800, 600)
         # Fonts parameters
         self.fontfamily = "Arial"
-        self.title = QFont(self.fontfamily, 12, QFont.Weight.Bold)
-        self.label = QFont(self.fontfamily, 10)
-        self.note = QFont(self.fontfamily, 18)
+        self.titlefont = QFont(self.fontfamily, 12, QFont.Weight.Bold)
+        self.labelfont = QFont(self.fontfamily, 10)
+        self.notefont = QFont(self.fontfamily, 18)
 
         ## FOLDER SELECTION WIDGET
         self.folderselection_label = QLabel("Select Folder to Track")
-        self.folderselection_label.setFont(self.label)
+        self.folderselection_label.setFont(self.labelfont)
         self.folderselector = QComboBox() # OBSERVER
         self.addbutton = QPushButton("Add Folder")
         # TODO!(0) link add button to feature
@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
 
         ## FILE TREE WIDGET
         # self.filetree_label = QLabel("Folder Content")
-        # self.filetree_label.setFont(self.label)
+        # self.filetree_label.setFont(self.labelfont)
         self.local_tree_model = QFileSystemModel()
         self.remote_tree_model = QFileSystemModel()
         self.local_filetree = QTreeView() # OBSERVER
@@ -60,12 +60,12 @@ class MainWindow(QMainWindow):
         ## DETAILS WIDGET
         # Local Path
         self.localpath_label = QLabel("Local Path")
-        self.localpath_label.setFont(self.label)
+        self.localpath_label.setFont(self.labelfont)
         self.localpath = QLineEdit("") #TODO!(0) read path # OBSERVER
         self.localpath.setReadOnly(True)
         # Remote Path
         self.remotepath_label = QLabel("Remote Path")
-        self.remotepath_label.setFont(self.label)
+        self.remotepath_label.setFont(self.labelfont)
         self.remotepath = QLineEdit("") #TODO!(0) read path # OBSERVER
         self.remotepath.setReadOnly(True)
         # Other
@@ -93,19 +93,33 @@ class MainWindow(QMainWindow):
 
 
     def update(self, subject):
-        print(f"Updating view.")
-        self.update_folderlist()
-        self.update_filetree()
+        folderlist = subject.get_foldernames_list()
+        local_path = None
+        remote_path = None
+        selected_folder = self.folderselector.currentData()
+        if selected_folder is not None and selected_folder != "":
+            local_path = subject.get_local_path(selected_folder)
+            remote_path = subject.get_local_path(selected_folder)
+        self.update_folderlist(folderlist=folderlist)
+        self.update_filetree(local_path=local_path, remote_path=remote_path)
+             
 
-    def update_folderlist(self, folderlist):
+    def update_folderlist(self, folderlist=[]):
         self.folderselector.clear()
+        self.folderselector.addItem("")
         self.folderselector.addItems(folderlist)
     
-    def update_filetree(self, local_path, remote_path):
-        self.local_tree_model.setRootPath(local_path)
-        self.remote_tree_model.setRootPath(remote_path)
-        self.local_filetree.setModel(self.local_tree_model)
-        self.remote_filetree.setModel(self.remote_tree_model)
+    def update_filetree(self, local_path=None, remote_path=None):
+        if local_path is None:
+            self.local_filetree.setModel(None)
+        else:
+            self.local_tree_model.setRootPath(local_path)
+            self.local_filetree.setModel(self.local_tree_model)
+        if remote_path is None:
+            self.remote_filetree.setModel(None)
+        else:
+            self.remote_tree_model.setRootPath(remote_path)
+            self.remote_filetree.setModel(self.remote_tree_model)
 
 if __name__ == "__main__":
 

@@ -35,9 +35,12 @@ class RepoModel(Subject):
         self.__db_filepath = self.__set_db_filepath(self.__db_filename) # private because path is relative to working dir & needs to be set properly
         self.__tablename = tablename
         self.initialize_folders_db()
-        self.local_folder = FolderModel()
-        self.remote_folder = FolderModel()
+        self.local_folder = None
+        self.remote_folder = None
 
+    def notify(self):
+        for obs in self.observers:
+            obs.update(self)
 
     ## GETTERS & SETTERS
 
@@ -168,15 +171,37 @@ class RepoModel(Subject):
         return folder_data
     
 
+    # CRUD - Read
     def get_foldernames_list(self, db_filepath=None, tablename=None):
         """
-        Not implemented yet.  
-        TODO!(1)
+        Get the list of tracked folders from the database.
         """
-        raise NotImplementedError
         db_filepath = db_filepath if db_filepath else self.get_db_filepath()
         tablename = tablename if tablename else self.get_tablename()
+        folderlist = []
+        with sqlite3.connect(db_filepath) as connection:
+            cursor = connection.execute(f"SELECT foldername FROM {tablename}")
+            folderlist = [row[0] for row in cursor.fetchall()]
+        return folderlist
+    
+    def get_local_path(self, foldername, db_filepath=None, tablename=None):
+        db_filepath = db_filepath if db_filepath else self.get_db_filepath()
+        tablename = tablename if tablename else self.get_tablename()
+        path = None
+        with sqlite3.connect(db_filepath) as connection:
+            cursor = connection.execute(f"SELECT local_path FROM {tablename} WHERE foldername = ? ", (foldername,))
+            path = cursor.fetchall()
+        return path
 
+    def get_remote_path(self, foldername, db_filepath=None, tablename=None):
+        db_filepath = db_filepath if db_filepath else self.get_db_filepath()
+        tablename = tablename if tablename else self.get_tablename()
+        path = None
+        with sqlite3.connect(db_filepath) as connection:
+            cursor = connection.execute(f"SELECT remote_path FROM {tablename} WHERE foldername = ? ", (foldername,))
+            path = cursor.fetchall()
+        return path
+        
 
     # CRUD - Update
     def set_folder_data(self, foldername, local_path=None, remote_path=None, new_name=None, db_filepath=None, tablename=None):
@@ -330,6 +355,8 @@ if __name__ == "__main__":
                 foldername = input(f"Type the name of the folder you want to delete: ")
                 test_model.remove_folder_from_db(foldername=foldername)
                 print(f"Database: {test_model.get_folder_data()}")
+            case "R_LIST":
+                test_model.get_foldernames_list()
             case _ :
                 print("Unknown choice, please retry.")
 

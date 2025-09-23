@@ -5,13 +5,12 @@ class MainController:
     def __init__(self, 
                  db_filename = "Folder_Data.db", 
                  tablename = "tracked_folders"):
+        
         self.repo_model = RepoModel(db_filename=db_filename, 
                                     tablename=tablename)
-        self.local_folder = None
-        self.remote_folder = None
         self.view = MainWindow()
-
         self.repo_model.attach(self.view)
+        self.repo_model.initialize_folders_db()
         
     def show(self):
         self.view.show()
