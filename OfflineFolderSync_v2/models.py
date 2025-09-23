@@ -1,15 +1,42 @@
 import os
 import sqlite3
 
-class RepoModel:
+
+# OBSERVER PATTERN - SUBJECT
+# Rôle d'un "observable" (Subject) :
+# notifier ses modifications de propriétés (notify() )
+# aux observers qui lui sont associés
+class Subject(object):
+    def __init__(self):
+        self.observers=[]
+
+    def notify(self):
+        for obs in self.observers:
+            obs.update(self)
+
+    def attach(self,obs):
+        if not callable(getattr(obs,"update")) :
+            raise ValueError("Observer must have an update() method")
+        self.observers.append(obs)
+
+    def detach(self,obs):
+        if obs in self.observers :
+            self.observers.remove(obs)
+
+
+
+class RepoModel(Subject):
 
     def __init__(self, 
                  db_filename = "Folder_Data.db", 
                  tablename = "tracked_folders"):
+        super().__init__()
         self.__db_filename = db_filename if db_filename[-3:]==".db" else str(db_filename+".db")
         self.__db_filepath = self.__set_db_filepath(self.__db_filename) # private because path is relative to working dir & needs to be set properly
         self.__tablename = tablename
         self.initialize_folders_db()
+        self.local_folder = FolderModel()
+        self.remote_folder = FolderModel()
 
 
     ## GETTERS & SETTERS
@@ -21,6 +48,7 @@ class RepoModel:
     def set_db_filename(self, db_filename):
         self.__db_filename = db_filename if db_filename[-3:]==".db" else str(db_filename+".db")
         self.__set_db_filepath(self.__db_filename)
+        self.notify()
 
 
     def get_db_filepath(self):
@@ -32,6 +60,7 @@ class RepoModel:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(script_dir, db_filename)
         self.__db_filepath = path
+        self.notify()
         return path
     
 
@@ -41,6 +70,7 @@ class RepoModel:
 
     def set_tablename(self, tablename):
         self.__tablename = tablename
+        self.notify()
     
 
     ## CRUD: DATABASE MANIPULATION
@@ -69,6 +99,7 @@ class RepoModel:
                         # last_sync TEXT NOT NULL,
                         # local_hash TEXT NOT NULL,
                         # usb_hash TEXT NOT NULL,
+        self.notify()
         return
     
 
@@ -109,6 +140,7 @@ class RepoModel:
                                     remote_path)
                 VALUES (?, ?, ?)
             """, (foldername, local_path, remote_path))
+        self.notify()
         return
 
 
@@ -175,6 +207,7 @@ class RepoModel:
                 values.append(foldername)
                 sql = f"UPDATE {tablename} SET {', '.join(fields)} WHERE foldername = ?"
                 connection.execute(sql, tuple(values))
+        self.notify()
         return
     
     
@@ -188,7 +221,8 @@ class RepoModel:
         # To set data for several folders at once.
         # Not crucial yet.
         raise NotImplementedError
-        pass
+        self.notify()
+        return
         
     # CRUD - Delete
     def remove_folder_from_db(self, foldername, db_filepath=None, tablename=None):
@@ -204,6 +238,8 @@ class RepoModel:
             connection.execute(f"""
                 DELETE FROM {tablename} WHERE foldername = ?
             """, (foldername,))
+        self.notify()
+        return
 
 
 class FolderModel:
