@@ -1,3 +1,8 @@
+# coding: utf-8
+DEBUG=True
+
+
+
 import os
 import sqlite3
 
@@ -34,13 +39,16 @@ class RepoModel(Subject):
         self.__db_filename = db_filename if db_filename[-3:]==".db" else str(db_filename+".db")
         self.__db_filepath = self.__set_db_filepath(self.__db_filename) # private because path is relative to working dir & needs to be set properly
         self.__tablename = tablename
+        self.__selected_folder = ""
+        self.__local_folder = FolderModel()
+        self.__remote_folder = FolderModel()
+        
         self.initialize_folders_db()
-        self.local_folder = None
-        self.remote_folder = None
 
     def notify(self):
         for obs in self.observers:
             obs.update(self)
+
 
     ## GETTERS & SETTERS
 
@@ -74,6 +82,35 @@ class RepoModel(Subject):
     def set_tablename(self, tablename):
         self.__tablename = tablename
         self.notify()
+
+    
+    def get_selected_folder(self):
+        return self.__selected_folder
+    
+    
+    def set_selected_folder(self, new_folder_name):
+        self.__selected_folder = new_folder_name
+        if new_folder_name=="" or new_folder_name is None:
+            self.__local_folder.set_path(None)
+            self.__remote_folder.set_path(None)
+            if DEBUG:
+                print(f"Folder selection empty.")
+            return
+        folder_data = self.get_folder_data(new_folder_name)[new_folder_name]
+        if DEBUG:
+            print(f"New folder data: {folder_data}")
+        self.__local_folder.set_path(folder_data["local_path"])
+        self.__remote_folder.set_path(folder_data["remote_path"])
+        self.notify()
+    
+
+    def get_local_folder(self):
+        return self.__local_folder
+
+
+    def get_remote_folder(self):
+        return self.__remote_folder
+
     
 
     ## CRUD: DATABASE MANIPULATION
@@ -153,6 +190,7 @@ class RepoModel(Subject):
         Get the data for a specified folder.  
         If no folder is specified, returns all folders data.  
         Defaults filepath and tablename are the attributes of the associated RepoModel instance.  
+        Returns a dict containing folder data
         """
         db_filepath = db_filepath if db_filepath else self.get_db_filepath()
         tablename = tablename if tablename else self.get_tablename()
@@ -184,6 +222,7 @@ class RepoModel(Subject):
             folderlist = [row[0] for row in cursor.fetchall()]
         return folderlist
     
+
     def get_local_path(self, foldername, db_filepath=None, tablename=None):
         db_filepath = db_filepath if db_filepath else self.get_db_filepath()
         tablename = tablename if tablename else self.get_tablename()
@@ -192,6 +231,7 @@ class RepoModel(Subject):
             cursor = connection.execute(f"SELECT local_path FROM {tablename} WHERE foldername = ? ", (foldername,))
             path = cursor.fetchall()
         return path
+
 
     def get_remote_path(self, foldername, db_filepath=None, tablename=None):
         db_filepath = db_filepath if db_filepath else self.get_db_filepath()
@@ -268,28 +308,37 @@ class RepoModel(Subject):
 
 
 class FolderModel:
-    def __init__(self):
-        self.path = ""
-        # TODO!(0)
+    def __init__(self, path=None):
+        self.__path = path
+        # TODO!(1) Add folder state
         pass
     
+    def get_path(self):
+        return self.__path
+
+    def set_path(self, new_path):
+        self.__path = new_path
+
     def scan_folder(self):
         # TODO!(0)
+        # TODO!(1) Add folder state, and update it when scanning
         pass
 
     def initialize_tracking_file(self, path):
         """
         Not implemented yet.  
         """
-        raise NotImplementedError
         # TODO!(0)
+        # Check if it exists
+        # If not then create it
+        raise NotImplementedError
     
     def delete_tracking_file(self, path):
         """
         Not implemented yet.  
         """
-        raise NotImplementedError
         # TODO!(0)
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
@@ -355,8 +404,12 @@ if __name__ == "__main__":
                 foldername = input(f"Type the name of the folder you want to delete: ")
                 test_model.remove_folder_from_db(foldername=foldername)
                 print(f"Database: {test_model.get_folder_data()}")
+
             case "R_LIST":
                 test_model.get_foldernames_list()
+            case "SELECTED_FOLDER":
+                selected_folder = input(f"Choose selected_folder: ")
+                test_model.set_selected_folder(selected_folder)
             case _ :
                 print("Unknown choice, please retry.")
 
