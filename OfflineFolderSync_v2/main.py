@@ -21,13 +21,32 @@ else:
         print("PyQt6 should work fine!")
 
 
+from models import RepoModel
+from views import MainWindow
 from controllers import MainController
 
+class MainApp(QApplication):
+    def __init__(self, args=None):
+        super().__init__(args)
+        self.menubar()
+        self.create()
 
-app = QApplication(sys.argv)
+    def create(self) :
+        model=RepoModel() 
+        view=MainWindow()
+        model.attach(view)
 
-controller = MainController()
-controller.show()  
+        control=MainController(model,view)
+        control.show()
 
-sys.exit(app.exec())
+    def menubar(self) :
+        pass
+
+
+if __name__=="__main__" :
+
+    app = MainApp(sys.argv)
+    
+
+    sys.exit(app.exec())
 

@@ -15,9 +15,9 @@ if major < 3 or (major == 3 and minor < 6):
     raise ImportError("PyQt6 requires Python 3.6+")
 else:
     # Import PyQt6 modules
-    from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QGridLayout, QComboBox, QTreeView
-    from PyQt6.QtCore import Qt
-    from PyQt6.QtGui import QAction, QFont, QFileSystemModel
+    from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QComboBox, QTreeView, QFileDialog, QMessageBox, QInputDialog, QDialogButtonBox, QDialog
+    # from PyQt6.QtCore import 
+    from PyQt6.QtGui import QFont, QFileSystemModel
     if __name__ == "__main__":
         print(f"Your Python version is: {major}.{minor}")
         print("PyQt6 should work fine!")
@@ -55,6 +55,7 @@ class MainWindow(QMainWindow):
         self.folderselector = QComboBox() # OBSERVER
         self.folderselector.maxVisibleItems = 9
         self.folderselector.insertPolicy = QComboBox.InsertPolicy.InsertAlphabetically
+        self.folderselector.currentTextChanged.connect(self.update_buttons)
         self.addfolderbutton = QPushButton("Add Folder")
         # TODO!(0) link add button to feature
         self.removefolderbutton = QPushButton("Remove Selected Folder")
@@ -94,6 +95,7 @@ class MainWindow(QMainWindow):
         # Other
         self.changepathbutton = QPushButton("Change Paths")
         self.changenamebutton = QPushButton("Change Name")
+        self.changepathbutton.setEnabled(False) # disabled for now bcs feature not added yet
         # Layout
         self.details_layout = QGridLayout()
         self.details_layout.addWidget(self.localpath_label, 0, 0)
@@ -113,7 +115,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.mainwidget)
         # TODO!(1) spacing a little more the folder selection and the content below it to improve visual comfort
         # TODO!(1) fix the filetree width taking more space than allowed
+        
+        self.update_buttons()
 
+## UPDATE METHODS
 
     def update(self, subject):
         print(type(self).__name__+".update()")
@@ -140,22 +145,83 @@ class MainWindow(QMainWindow):
     
 
     def update_filetree(self, local_path=None, remote_path=None):
-        print(type(self).__name__+".update_filetree()")
-        print(f"local path: {local_path} \t remote path: {remote_path}")
+        if DEBUG: 
+            print(type(self).__name__+".update_filetree()")
+            print(f"local path: {local_path} \t remote path: {remote_path}")
         if local_path is None:
             self.local_filetree.setModel(None)
         else:
-            self.local_tree_model.setRootPath(local_path)
+            index = self.local_tree_model.setRootPath(local_path)
             self.local_filetree.setModel(self.local_tree_model)
+            self.local_filetree.setRootIndex(index)
         if remote_path is None:
             self.remote_filetree.setModel(None)
         else:
-            self.remote_tree_model.setRootPath(remote_path)
+            index = self.remote_tree_model.setRootPath(remote_path)
             self.remote_filetree.setModel(self.remote_tree_model)
+            self.remote_filetree.setRootIndex(index)
     
     def update_paths_views(self, local_path=None, remote_path=None):
         self.localpath.setText(local_path)
         self.remotepath.setText(remote_path)
+    
+    def update_buttons(self):
+        folder_selected = self.folderselector.currentText() is not "" # True if a folder is selected, False if selection empty
+        self.removefolderbutton.setEnabled(folder_selected)
+        self.changenamebutton.setEnabled(folder_selected)
+        # self.changepathbutton.setEnabled(folder_selected) # disabled for now because feature not added yet
+
+## PROMPTS
+
+    def prompt_add_folder(self):
+        local_path = QFileDialog.getExistingDirectory(self, "Select local path")
+        if not local_path:
+            QMessageBox.information(self, "Add Folder", "No local path selected.")
+            return None
+        remote_path = QFileDialog.getExistingDirectory(self, "Select remote path")
+        if not remote_path:
+            QMessageBox.information(self, "Add Folder", "No remote path selected.")
+            return None
+        foldername, ok1 = QInputDialog.getText(self, "Add Folder", "Folder name:")
+        if not ok1 or not foldername:
+            return None
+        return foldername, local_path, remote_path
+    
+
+    def prompt_confirmation(self, action_description):
+        dialog = ConfirmationPopup(action_description=action_description)
+        if dialog.exec():
+            return True
+        else:
+            return False
+    
+    def prompt_new_foldername(self):
+        foldername, ok1 = QInputDialog.getText(self, "Add Folder", "Folder name:")
+        if not ok1 or not foldername:
+            return None
+        return foldername
+
+class ConfirmationPopup(QDialog):
+    def __init__(self, action_description):
+        super().__init__()
+
+        self.setWindowTitle("Please confirm")
+
+        QBtn = (
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        layout = QVBoxLayout()
+        message = QLabel(f"You are about to do the following:  {action_description}")
+        layout.addWidget(message)
+        layout.addWidget(self.buttonBox)
+        self.setLayout(layout)
+
+
 
 
 if __name__ == "__main__":

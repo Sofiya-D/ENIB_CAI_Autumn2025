@@ -95,6 +95,7 @@ class RepoModel(Subject):
             self.__remote_folder.set_path(None)
             if DEBUG:
                 print(f"Folder selection empty.")
+                self.notify()
             return
         folder_data = self.get_folder_data(new_folder_name)[new_folder_name]
         if DEBUG:
@@ -290,10 +291,13 @@ class RepoModel(Subject):
         return
         
     # CRUD - Delete
-    def remove_folder_from_db(self, foldername, db_filepath=None, tablename=None):
+    def remove_folder_from_db(self, foldername, 
+                              delete_tracking_files=True,  
+                              db_filepath=None, 
+                              tablename=None):
         """
         Remove a folder from tracking.
-        TODO: Deletes the tracking files in local and usb folders.
+        TODO: Deleting the tracking files in local and usb folders.
         """
         # delete_tracking_files(foldername)
         # Remove folder from DB

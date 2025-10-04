@@ -26,14 +26,11 @@ from views import MainWindow
 
 class MainController:
     def __init__(self, 
-                 db_filename = "Folder_Data.db", 
-                 tablename = "tracked_folders"):
+                 repo_model,
+                 view):
         
-        self.repo_model = RepoModel(db_filename=db_filename, 
-                                    tablename=tablename)
-        self.view = MainWindow()
-        self.repo_model.attach(self.view)
-        self.repo_model.initialize_folders_db()
+        self.repo_model = repo_model
+        self.view = view
         self.actions_binding()
         
     def show(self):
@@ -47,29 +44,54 @@ class MainController:
         self.view.folderselector.currentTextChanged.connect(self.folder_selection_changed)
         self.view.addfolderbutton.clicked.connect(self.add_folder)
         self.view.removefolderbutton.clicked.connect(self.remove_folder)
+        self.view.changenamebutton.clicked.connect(self.change_foldername)
+        self.view.changepathbutton.clicked.connect(self.change_paths)
 
 
     def folder_selection_changed(self, new_folder_name):
-        # TODO!(0)
-        # If empty: disable 'Remove folder' button
-        # Else: update paths & tree views --> handled in the view
         if DEBUG:
             print(f"Folder selection changed: {new_folder_name}")
         self.repo_model.set_selected_folder(new_folder_name=new_folder_name)
 
 
     def add_folder(self):
-        # TODO!(0)
         if DEBUG:
-            print(f"'Add folder' button clicked !")
-        else:
-            raise NotImplementedError
+            print(type(self).__name__+".add_folder()")
+        foldername, local_path, remote_path = self.view.prompt_add_folder()
+        if foldername and local_path and remote_path :
+            self.repo_model.add_new_folder_to_db(foldername=foldername, 
+                                                 local_path=local_path, 
+                                                 remote_path=remote_path)
 
 
     def remove_folder(self):
+        if DEBUG:
+            print(type(self).__name__+".remove_folder()")
+        confirmation = self.view.prompt_confirmation("delete folder")
+        if confirmation:
+            if DEBUG:
+                print("Deletion confirmed.")
+            delete_tracking_files = True
+            self.repo_model.remove_folder_from_db(self.repo_model.get_selected_folder(), delete_tracking_files=delete_tracking_files)
+        else:
+            if DEBUG:
+                print("Deletion cancelled.")
+
+
+    def change_foldername(self):
         # TODO!(0)
         if DEBUG:
-            print(f"'Remove folder' button clicked !")
+            print(type(self).__name__+".change_foldername()")
+        current_folder = self.repo_model.get_selected_folder()
+        new_foldername = self.view.prompt_new_foldername()
+        self.repo_model.set_folder_data(current_folder,
+                                        new_name=new_foldername)
+
+
+    def change_paths(self):
+        # TODO!(0)
+        if DEBUG:
+            print(type(self).__name__+".change_paths()")
         else:
             raise NotImplementedError
 
@@ -83,7 +105,11 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
-    controller = MainController(db_filename="test", tablename="test")
+    repo_model = RepoModel("test", "test")
+    view = MainWindow()
+    repo_model.attach(view)
+    repo_model.initialize_folders_db()
+    controller = MainController(repo_model=repo_model, view=view)
     controller.show()  
 
     sys.exit(app.exec())
