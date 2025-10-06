@@ -39,13 +39,15 @@ class MainController:
     def actions_binding(self) :
         if DEBUG :
             print(type(self).__name__+".actions_binding()")
-        # self.scale_freq.bind("<B1-Motion>",self.on_frequency_action)
-        # self.spinbox_samples.bind("<Button-1>",self.on_samples_action)
         self.view.folderselector.currentTextChanged.connect(self.folder_selection_changed)
         self.view.addfolderbutton.clicked.connect(self.add_folder)
         self.view.removefolderbutton.clicked.connect(self.remove_folder)
         self.view.changenamebutton.clicked.connect(self.change_foldername)
         self.view.changepathbutton.clicked.connect(self.change_paths)
+        self.view.add_action.triggered.connect(self.add_folder)
+        self.view.remove_action.triggered.connect(self.remove_folder)
+        self.view.edit_action.triggered.connect(self.remove_folder)
+
 
 
     def folder_selection_changed(self, new_folder_name):

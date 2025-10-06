@@ -15,7 +15,7 @@ if major < 3 or (major == 3 and minor < 6):
     raise ImportError("PyQt5 requires Python 3.6+")
 else:
     # Import PyQt5 modules
-    from PyQt5.QtWidgets import QApplication, QFileSystemModel, QMainWindow, QPushButton, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QComboBox, QTreeView, QFileDialog, QMessageBox, QInputDialog, QDialogButtonBox, QDialog
+    from PyQt5.QtWidgets import QApplication, QAction, QFileSystemModel, QMainWindow, QPushButton, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QComboBox, QTreeView, QFileDialog, QMessageBox, QInputDialog, QDialogButtonBox, QDialog
     # from PyQt5.QtCore import 
     from PyQt5.QtGui import QFont
     if __name__ == "__main__":
@@ -57,10 +57,7 @@ class MainWindow(QMainWindow):
         self.folderselector.insertPolicy = QComboBox.InsertPolicy.InsertAlphabetically
         self.folderselector.currentTextChanged.connect(self.update_buttons)
         self.addfolderbutton = QPushButton("Add Folder")
-        # TODO!(0) link add button to feature
         self.removefolderbutton = QPushButton("Remove Selected Folder")
-        # TODO!(0) link remove button to feature
-        # TODO!(1) deactivate remove button if no folder is selected
         # Layout
         self.folderselection_layout = QHBoxLayout()
         self.folderselection_layout.addWidget(self.folderselection_label)
@@ -69,15 +66,12 @@ class MainWindow(QMainWindow):
         self.folderselection_layout.addWidget(self.removefolderbutton)
 
         ## FILE TREE WIDGET
-        # self.filetree_label = QLabel("Folder Content")
-        # self.filetree_label.setFont(self.labelfont)
         self.local_tree_model = QFileSystemModel()
         self.remote_tree_model = QFileSystemModel()
         self.local_filetree = QTreeView() # OBSERVER
         self.remote_filetree = QTreeView() # OBSERVER
         # Layout
         self.filetree_layout = QHBoxLayout()
-        # self.filetree_layout.addWidget(self.filetree_label)
         self.filetree_layout.addWidget(self.local_filetree)
         self.filetree_layout.addWidget(self.remote_filetree)
 
@@ -85,12 +79,12 @@ class MainWindow(QMainWindow):
         # Local Path
         self.localpath_label = QLabel("Local Path")
         self.localpath_label.setFont(self.labelfont)
-        self.localpath = QLineEdit("") #TODO!(0) read path # OBSERVER
+        self.localpath = QLineEdit("")
         self.localpath.setReadOnly(True)
         # Remote Path
         self.remotepath_label = QLabel("Remote Path")
         self.remotepath_label.setFont(self.labelfont)
-        self.remotepath = QLineEdit("") #TODO!(0) read path # OBSERVER
+        self.remotepath = QLineEdit("")
         self.remotepath.setReadOnly(True)
         # Other
         self.changepathbutton = QPushButton("Change Paths")
@@ -115,6 +109,22 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.mainwidget)
         # TODO!(1) spacing a little more the folder selection and the content below it to improve visual comfort
         # TODO!(1) fix the filetree width taking more space than allowed
+
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu('File')
+        help_menu = menubar.addMenu('Help')
+
+        # Add actions to the File menu
+        self.add_action = QAction('Add', self)
+        self.remove_action = QAction('Remove', self)
+        self.edit_action = QAction('Edit', self)
+        file_menu.addAction(self.add_action)
+        file_menu.addAction(self.remove_action)
+        file_menu.addAction(self.edit_action)
+
+        # Add actions to the Help menu
+        about_action = QAction('About', self)
+        help_menu.addAction(about_action)
         
         self.update_buttons()
 

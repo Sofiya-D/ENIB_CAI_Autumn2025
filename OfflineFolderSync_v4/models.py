@@ -1,7 +1,5 @@
 # coding: utf-8
-DEBUG=True
-
-
+DEBUG=False
 
 import os
 import sqlite3
